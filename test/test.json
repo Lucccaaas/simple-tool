@@ -1,0 +1,14 @@
+{
+  "bool": true,
+  "number": 1,
+  "float": 1.1,
+  "str": "string",
+  "array": [
+    1,
+    2,
+    3
+  ],
+  "obj": {
+    "key1": "value1"
+  }
+}
