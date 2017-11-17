@@ -36,7 +36,7 @@ func main() {
 	jsonObj := converter.ReadJson(inputConfig.json)
 	javaClass := converter.JsonToJavaClass(fileName, *jsonObj)
 	javaFile := converter.ClassToJavaFile(&javaClass)
-	javaString := converter.Convert(javaFile)
+	javaString := converter.FileDescriptionToString(javaFile)
 	converter.WriteToFile(javaString, inputConfig.dist)
 
 	fmt.Printf("generated %s from %s \n", *dist, *json)

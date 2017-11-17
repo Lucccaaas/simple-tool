@@ -40,8 +40,22 @@ const (
 )
 
 type javaField struct {
-	filedName string
-	filedType string
+	filedName       string
+	filedType       string
+	fieldAnnotation fieldAnnotation
+}
+
+type fieldAnnotation struct {
+	annotations []annotation
+}
+
+type annotation struct {
+	name  string
+	value string
+}
+
+var ImportConfig struct {
+	hasJsonProperty bool
 }
 
 func JsonToJavaClass(name string, json map[string]interface{}) javaClassDescription {
@@ -59,6 +73,12 @@ func JsonToJavaClass(name string, json map[string]interface{}) javaClassDescript
 			continue
 		}
 		valueType := reflect.TypeOf(value)
+
+		var annotation = fieldAnnotation{annotations: []annotation{}}
+		processAnnotation(key, &annotation)
+
+		key = c.LowerCaseFirst(key)
+
 		//基本类型 数字
 		if strings.Contains(valueType.Name(), GO_Number) {
 			var javaType string
@@ -68,21 +88,21 @@ func JsonToJavaClass(name string, json map[string]interface{}) javaClassDescript
 			} else {
 				javaType = JAVA_Integer
 			}
-			classDesc.fields = append(classDesc.fields, javaField{key, javaType})
+			classDesc.fields = append(classDesc.fields, javaField{key, javaType, annotation})
 		}
 		//字符串
 		if valueType.Name() == GO_String {
-			classDesc.fields = append(classDesc.fields, javaField{key, JAVA_String})
+			classDesc.fields = append(classDesc.fields, javaField{key, JAVA_String, annotation})
 		}
 		//布尔值
 		if valueType.Name() == GO_Bool {
-			classDesc.fields = append(classDesc.fields, javaField{key, JAVA_Bool})
+			classDesc.fields = append(classDesc.fields, javaField{key, JAVA_Bool, annotation})
 		}
 		//对象
 		if !strings.HasPrefix(valueType.String(), "[]") &&
 			strings.Contains(valueType.String(), "map") {
 			classDesc.fields = append(classDesc.fields,
-				javaField{key, c.UpperCaseFirst(key)})
+				javaField{key, c.UpperCaseFirst(key), annotation})
 
 			parentClass := findParent(&classDesc)
 			objClass := JsonToJavaClass(c.UpperCaseFirst(key), value.(map[string]interface{}))
@@ -107,7 +127,7 @@ func JsonToJavaClass(name string, json map[string]interface{}) javaClassDescript
 			if strings.Contains(elmType.String(), "map[string]") {
 
 				classDesc.fields = append(classDesc.fields,
-					javaField{key, listType(c.UpperCaseFirst(key))})
+					javaField{key, listType(c.UpperCaseFirst(key)), annotation})
 
 				parentClass := findParent(&classDesc)
 				elmClass := JsonToJavaClass(c.UpperCaseFirst(key), elm.(map[string]interface{}))
@@ -119,7 +139,7 @@ func JsonToJavaClass(name string, json map[string]interface{}) javaClassDescript
 				//元素为基本值
 				typeString := parseType(nested[0])
 				classDesc.fields = append(classDesc.fields,
-					javaField{key, listType(typeString)})
+					javaField{key, listType(typeString), annotation})
 			}
 		}
 	}
@@ -130,7 +150,10 @@ func ClassToJavaFile(description *javaClassDescription) *javaFileDescription {
 	javaFileDescription := javaFileDescription{}
 	javaFileDescription.packageName = "generated"
 	javaFileDescription.classDesc = description
-	imports := []javaImport{}
+	var imports []javaImport
+	if ImportConfig.hasJsonProperty {
+		imports = append(imports, javaImport{"com.fasterxml.jackson.annotation.JsonProperty"})
+	}
 	imports = append(imports, javaImport{"lombok.AllArgsConstructor"})
 	imports = append(imports, javaImport{"lombok.Builder"})
 	imports = append(imports, javaImport{"lombok.Data"})
@@ -150,4 +173,11 @@ func ClassToJavaFile(description *javaClassDescription) *javaFileDescription {
 	javaFileDescription.fileComment = fileComment
 
 	return &javaFileDescription
+}
+
+func processAnnotation(key string, annotationValue *fieldAnnotation) {
+	if isUpperCaseFirst(key) {
+		ImportConfig.hasJsonProperty = true
+		annotationValue.annotations = append(annotationValue.annotations, annotation{"JsonProperty", key})
+	}
 }

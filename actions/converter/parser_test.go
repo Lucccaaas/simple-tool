@@ -73,10 +73,10 @@ func TestNumber(t *testing.T) {
 
 			t.Log("checke filed success", checkMark)
 		}
-		t.Log("generator JavaClass")
+		t.Log("generator JavaClass", checkMark)
 		{
 
-			content := Convert(ClassToJavaFile(&classDesc))
+			content := FileDescriptionToString(ClassToJavaFile(&classDesc))
 			fmt.Println(content)
 			WriteToFile(content, "./static/"+classDesc.className+".java")
 		}

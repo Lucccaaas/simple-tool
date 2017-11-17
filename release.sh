@@ -1,0 +1,1 @@
+mv ./simple-tool /usr/local/bin

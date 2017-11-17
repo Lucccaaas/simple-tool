@@ -39,6 +39,10 @@ func classToString(classDesc *javaClassDescription) string {
 	//genField:: []field -> string
 	var fieldStringList []string
 	for _, field := range classDesc.fields {
+		var annotationString = mkAnnotations(field.fieldAnnotation)
+		if annotationString != "" {
+			fieldStringList = append(fieldStringList, annotationString)
+		}
 		fieldString := addIndent("private "+field.filedType+" "+field.filedName+";", indent)
 		fieldStringList = append(fieldStringList, fieldString)
 	}
@@ -59,7 +63,7 @@ func classToString(classDesc *javaClassDescription) string {
 	return replace(classTemplate, classDesc.className, body)
 }
 
-func Convert(description *javaFileDescription) string {
+func FileDescriptionToString(description *javaFileDescription) string {
 	packageString := mkPackage(description.packageName)
 	importString := mkImports(description.imports)
 	commentString := description.fileComment
@@ -79,6 +83,21 @@ func mkPackage(name string) string {
 	return "package " + name + ";"
 }
 
+func mkAnnotations(annotation fieldAnnotation) string {
+	var annotationStringArray []string
+	if len(annotation.annotations) > 0 {
+		for _, annotation := range annotation.annotations {
+			annotationStringArray = append(annotationStringArray, mkAnnotation(annotation))
+		}
+		return strings.Join(annotationStringArray, "\n")
+	}
+	return ""
+}
+
+func mkAnnotation(item annotation) string {
+	return addIndent("@"+item.name+"(\""+item.value+"\")", indent)
+}
+
 func isUpperCaseFirst(key string) bool {
 	runes := []rune(key)
 	if (runes[0] >= 'a') && (runes[0] <= 'z') {
@@ -86,8 +105,6 @@ func isUpperCaseFirst(key string) bool {
 	}
 	return true
 }
-
-
 
 func addIndent(multiLine string, indent string) string {
 	splitString := strings.Split(multiLine, "\n")

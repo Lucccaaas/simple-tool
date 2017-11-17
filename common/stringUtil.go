@@ -10,3 +10,12 @@ func UpperCaseFirst(key string) string {
 	result := string(runes)
 	return result
 }
+
+func LowerCaseFirst(key string) string {
+	runes := []rune(key)
+	if (runes[0] >= 'A') && (runes[0] <= 'Z') {
+		runes[0] = unicode.ToLower(runes[0])
+	}
+	result := string(runes)
+	return result
+}

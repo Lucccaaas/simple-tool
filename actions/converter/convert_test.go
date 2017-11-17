@@ -22,7 +22,7 @@ func TestMapper(t *testing.T) {
 `
 	var jsonObj map[string]interface{}
 	json.Unmarshal([]byte(jsonStr), &jsonObj)
-	//javaStr := Convert("Demo", jsonObj)
+	//javaStr := FileDescriptionToString("Demo", jsonObj)
 	//fmt.Println(javaStr)
 }
 

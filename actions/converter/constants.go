@@ -10,7 +10,7 @@ $body
 `
 
 var innerClassTemplate string = `
-@Data
+@lombok.Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
