@@ -21,7 +21,7 @@ func hasList(description *javaClassDescription) bool {
 }
 
 func keys(maps map[string]interface{}) []string {
-	keys := make([]string, len(maps))
+	var keys []string
 	for key, _ := range maps {
 		keys = append(keys, key)
 	}

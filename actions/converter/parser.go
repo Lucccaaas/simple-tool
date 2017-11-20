@@ -37,6 +37,7 @@ const (
 	JAVA_Integer = "Integer"
 	JAVA_String  = "String"
 	JAVA_Bool    = "Boolean"
+	JAVA_Object  = "Object"
 )
 
 type javaField struct {
@@ -68,16 +69,20 @@ func JsonToJavaClass(name string, json map[string]interface{}) javaClassDescript
 	classDesc.className = name
 	for _, key := range keys(json) {
 		value := json[key]
-		//忽略null,undefined
-		if value == nil {
-			continue
-		}
-		valueType := reflect.TypeOf(value)
 
 		var annotation = fieldAnnotation{annotations: []annotation{}}
 		processAnnotation(key, &annotation)
 
 		key = c.LowerCaseFirst(key)
+
+		//null,undefined 视为 Object
+		if value == nil {
+			var javaType = JAVA_Object
+			classDesc.fields = append(classDesc.fields, javaField{key, javaType, annotation})
+			continue
+		}
+
+		valueType := reflect.TypeOf(value)
 
 		//基本类型 数字
 		if strings.Contains(valueType.Name(), GO_Number) {
@@ -119,7 +124,9 @@ func JsonToJavaClass(name string, json map[string]interface{}) javaClassDescript
 			nested := value.([]interface{})
 
 			if len(nested) == 0 {
-				panic("不支持空数据")
+				var javaType = JAVA_Object
+				classDesc.fields = append(classDesc.fields, javaField{key, javaType, annotation})
+				continue
 			}
 			elm := nested[0]
 			elmType := reflect.TypeOf(elm)
