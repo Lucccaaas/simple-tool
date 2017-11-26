@@ -5,6 +5,7 @@ import (
 	"simple-tool/actions/converter"
 	"fmt"
 	"simple-tool/common"
+	"strings"
 )
 
 type config struct {
@@ -21,23 +22,43 @@ func main() {
 
 	flag.Parse()
 
-	if *json == "" {
-		panic("no such file: " + *json)
+	if *json != "" {
+
+		*dist = distFileName(*dist, fileName(*json))
+
+		inputConfig := config{*gen, *json, *dist}
+
+		processSingleFile(inputConfig)
+	} else {
+		fileNames := common.ExtensionFiles("./", ".json")
+		fmt.Println("检测到.json文件: ", fileNames)
+		for _, fileNameItem := range fileNames {
+			dist := distFileName(*dist, fileName(fileNameItem))
+			inputConfig := config{*gen, fileNameItem, dist}
+			processSingleFile(inputConfig)
+		}
 	}
+}
 
-	fileName := common.UpperCaseFirst(common.FileName(*json))
+func fileName(json string) string {
+	return common.UpperCaseFirst(common.FileName(json))
+}
 
-	if *dist == "" {
-		*dist = fileName + ".java"
-	}
-
-	inputConfig := config{*gen, *json, *dist}
-
+func processSingleFile(inputConfig config) {
 	jsonObj := converter.ReadJson(inputConfig.json)
-	javaClass := converter.JsonToJavaClass(fileName, *jsonObj)
+	javaClass := converter.JsonToJavaClass(fileName(inputConfig.json), *jsonObj)
 	javaFile := converter.ClassToJavaFile(&javaClass)
 	javaString := converter.FileDescriptionToString(javaFile)
 	converter.WriteToFile(javaString, inputConfig.dist)
 
-	fmt.Printf("generated %s from %s \n", *dist, *json)
+	fmt.Printf("generated %s from %s \n", inputConfig.dist, inputConfig.json)
+}
+
+func distFileName(dist string, fileName string) string {
+	if dist == "" {
+		fileName = strings.TrimSuffix(fileName, ".json")
+		return fileName + ".java"
+	} else {
+		return dist
+	}
 }
