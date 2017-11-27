@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-mv ./simple-tool /usr/local/bin
+cp ./dist/mac/simple-tool /usr/local/bin/
