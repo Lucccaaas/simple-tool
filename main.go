@@ -31,7 +31,7 @@ func main() {
 		processSingleFile(inputConfig)
 	} else {
 		fileNames := common.ExtensionFiles("./", ".json")
-		fmt.Println("检测到.json文件: ", fileNames)
+		fmt.Println("detected .json files: ", fileNames)
 		for _, fileNameItem := range fileNames {
 			dist := distFileName(*dist, fileName(fileNameItem))
 			inputConfig := config{*gen, fileNameItem, dist}
